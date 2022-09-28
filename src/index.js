@@ -1,11 +1,13 @@
 import { GraphQLServer } from 'graphql-yoga';
 
 // Type definitions (schema) application schema
+// array of scalar types
 const typeDefs = `type Query {
     greeting(name: String): String!
-    add(a: Float!, b: Float!): Float!
+    add(numbers:[Float!]!): Float!
     me: User!
     post: Post!
+    grades: [Int!]!
 }
 
 type User {
@@ -26,12 +28,20 @@ type Post {
 
 const resolvers = {
   Query: {
+    grades(parent, args, ctx, info) {
+      return [60, 70, 80];
+    },
     greeting(parent, args, ctx, info) {
       // parent is the object that contains the result of the previous operation, args is the arguments passed to the function, ctx is the context object, info is the information about the query
       return `Hello ${args.name}`;
     },
     add(parent, args, ctx, info) {
-      return args.a + args.b;
+      if (args.numbers.length === 0) {
+        return 0;
+      }
+      return args.numbers.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue;
+      });
     },
     me() {
       return {
