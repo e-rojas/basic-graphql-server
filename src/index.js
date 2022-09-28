@@ -2,6 +2,8 @@ import { GraphQLServer } from 'graphql-yoga';
 
 // Type definitions (schema) application schema
 const typeDefs = `type Query {
+    greeting(name: String): String!
+    add(a: Float!, b: Float!): Float!
     me: User!
     post: Post!
 }
@@ -24,6 +26,13 @@ type Post {
 
 const resolvers = {
   Query: {
+    greeting(parent, args, ctx, info) {
+      // parent is the object that contains the result of the previous operation, args is the arguments passed to the function, ctx is the context object, info is the information about the query
+      return `Hello ${args.name}`;
+    },
+    add(parent, args, ctx, info) {
+      return args.a + args.b;
+    },
     me() {
       return {
         id: '123098',
