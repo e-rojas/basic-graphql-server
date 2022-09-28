@@ -21,6 +21,7 @@ type Post {
     title: String!
     body: String!
     published: Boolean!
+    author: User!
 }
 
 `;
@@ -29,16 +30,19 @@ const posts = [
     id: '1',
     title: 'GraphQL 101',
     body: 'this is about graphQL 101',
+    author: '1',
   },
   {
     id: '2',
     title: 'GraphQL 201',
     body: 'this is about graphQL 201',
+    author: '1',
   },
   {
     id: '3',
     title: 'Programming Music',
     body: 'this is about programming music',
+    author: '2',
   },
 ];
 const users = [
@@ -67,6 +71,7 @@ const resolvers = {
       if (!args.query) {
         return posts;
       }
+      //  scaler types requested from the client
       return posts.filter((post) => {
         return (
           post.title.toLowerCase().includes(args.query.toLowerCase()) ||
@@ -74,6 +79,7 @@ const resolvers = {
         );
       });
     },
+
     users(parent, args, ctx, info) {
       if (!args.query) {
         return users;
@@ -97,6 +103,14 @@ const resolvers = {
         body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
         published: false,
       };
+    },
+  },
+  // custom type resolver for Post
+  Post: {
+    author: (parent, args, ctx, info) => {
+      return users.find((user) => {
+        return user.id === parent.author;
+      });
     },
   },
 };
