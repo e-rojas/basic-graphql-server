@@ -3,11 +3,10 @@ import { GraphQLServer } from 'graphql-yoga';
 // Type definitions (schema) application schema
 // array of scalar types
 const typeDefs = `type Query {
-    greeting(name: String): String!
-    add(numbers:[Float!]!): Float!
+    users(query:String): [User!]!
+    posts(query:String): [Post!]!
     me: User!
     post: Post!
-    grades: [Int!]!
 }
 
 type User {
@@ -25,22 +24,62 @@ type Post {
 }
 
 `;
-
+const posts = [
+  {
+    id: '1',
+    title: 'GraphQL 101',
+    body: 'this is about graphQL 101',
+  },
+  {
+    id: '2',
+    title: 'GraphQL 201',
+    body: 'this is about graphQL 201',
+  },
+  {
+    id: '3',
+    title: 'Programming Music',
+    body: 'this is about programming music',
+  },
+];
+const users = [
+  {
+    id: '1',
+    name: 'Albert',
+    email: 'albert@mail.com',
+    age: 27,
+  },
+  {
+    id: '2',
+    name: 'Sarah',
+    email: 'sarah@mail.com',
+    age: 25,
+  },
+  {
+    id: '3',
+    name: 'Mike',
+    email: 'mike@gmail.com',
+    age: null,
+  },
+];
 const resolvers = {
   Query: {
-    grades(parent, args, ctx, info) {
-      return [60, 70, 80];
-    },
-    greeting(parent, args, ctx, info) {
-      // parent is the object that contains the result of the previous operation, args is the arguments passed to the function, ctx is the context object, info is the information about the query
-      return `Hello ${args.name}`;
-    },
-    add(parent, args, ctx, info) {
-      if (args.numbers.length === 0) {
-        return 0;
+    posts: (parent, args, ctx, info) => {
+      if (!args.query) {
+        return posts;
       }
-      return args.numbers.reduce((accumulator, currentValue) => {
-        return accumulator + currentValue;
+      return posts.filter((post) => {
+        return (
+          post.title.toLowerCase().includes(args.query.toLowerCase()) ||
+          post.body.toLowerCase().includes(args.query.toLowerCase())
+        );
+      });
+    },
+    users(parent, args, ctx, info) {
+      if (!args.query) {
+        return users;
+      }
+      return users.filter((user) => {
+        return user.name.toLowerCase().includes(args.query.toLowerCase());
       });
     },
     me() {
