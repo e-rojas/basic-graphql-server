@@ -14,6 +14,7 @@ type User {
     name: String!
     email: String!
     age: Int
+    posts: [Post!]!
 }
 
 type Post {
@@ -113,28 +114,16 @@ const resolvers = {
       });
     },
   },
+  // custom type resolver for User
+  User: {
+    posts: (parent, args, ctx, info) => {
+      console.log('parent', parent);
+      return posts.filter((post) => {
+        return post.author === parent.id;
+      });
+    },
+  },
 };
-
-// Resolvers
-// const resolvers = {
-//   Query: {
-//    id() {
-//     return 'abc123';
-//    },
-//     name() {
-//         return 'Jerry'
-//     },
-//     age() {
-//         return 27
-//     },
-//     employed() {
-//         true
-//     },
-//     gpa(){
-//         return 3.23
-//     }
-//   },
-// };
 
 // Create the GraphQL Yoga Server
 const server = new GraphQLServer({
