@@ -1,5 +1,5 @@
 import { GraphQLServer } from 'graphql-yoga';
-
+import uuidv4 from 'uuid/v4';
 // Type definitions (schema) application schema
 // array of scalar types
 const typeDefs = `type Query {
@@ -8,6 +8,10 @@ const typeDefs = `type Query {
     comments: [Comment!]!
     me: User!
     post: Post!
+}
+
+type Mutation {
+    createUser(name:String!,email:String!,age:Int):User!
 }
 
 type User {
@@ -147,6 +151,22 @@ const resolvers = {
       };
     },
   },
+  Mutation: {
+    createUser(parent, args, ctx, info) {
+      const emailTaken = users.some((user) => user.email === args.email);
+      if (emailTaken) {
+        throw new Error('Email taken.');
+      }
+      const user = {
+        id: uuidv4(),
+        name: args.name,
+        email: args.email,
+        age: args.age || null,
+      };
+      users.push(user);
+      return user;
+    },
+  },
   // custom type resolver for Post
   Post: {
     author(parent, args, ctx, info) {
@@ -194,5 +214,5 @@ const server = new GraphQLServer({
 
 // Start the server
 server.start(() => {
-  console.log('The server is up!');
+  console.log('The server is up on port:4000!');
 });
