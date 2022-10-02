@@ -156,8 +156,9 @@ const resolvers = {
   Mutation: {
     createComment(parent, args, ctx, info) {
       const userIsValid = users.some((user) => user.id === args.author);
-      if (!userIsValid) {
-        throw new Error('Invalid user!');
+      const postExist = posts.some((post) => post.id === args.post);
+      if (!userIsValid || !postExist) {
+        throw new Error('Invalid user or Post id!');
       }
       const comment = {
         id: uuidv4(),
