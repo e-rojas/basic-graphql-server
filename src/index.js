@@ -11,9 +11,15 @@ const typeDefs = `type Query {
 }
 
 type Mutation {
-    createUser(name:String!,email:String!,age:Int):User!
+    createUser(data: CreateUserInput):User!
     createPost(title:String!,body:String!,published:Boolean!,author:ID!):Post!
     createComment(text:String!,author:ID!,post:ID!):Comment!
+}
+
+input CreateUserInput {
+  name: String!,
+  email: String!,
+  age: Int
 }
 
 type User {
@@ -162,24 +168,20 @@ const resolvers = {
       }
       const comment = {
         id: uuidv4(),
-        text: args.text,
-        author: args.author,
-        post: args.post,
+        ...args,
       };
 
       comments.push(comment);
       return comment;
     },
     createUser(parent, args, ctx, info) {
-      const emailTaken = users.some((user) => user.email === args.email);
+      const emailTaken = users.some((user) => user.email === args.data.email);
       if (emailTaken) {
         throw new Error('Email taken.');
       }
       const user = {
         id: uuidv4(),
-        name: args.name,
-        email: args.email,
-        age: args.age || null,
+        ...args.data,
       };
       users.push(user);
       return user;
@@ -191,9 +193,7 @@ const resolvers = {
       }
       const post = {
         id: uuidv4(),
-        title: args.title,
-        body: args.body,
-        author: args.author,
+        ...args,
       };
       posts.push(post);
       return post;
