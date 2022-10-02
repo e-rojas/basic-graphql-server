@@ -37,4 +37,4 @@ class UserResolver {
   }
 }
 
-export { UserResolver };
+export default UserResolver;
