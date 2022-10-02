@@ -12,6 +12,8 @@ const typeDefs = `type Query {
 
 type Mutation {
     createUser(name:String!,email:String!,age:Int):User!
+    createPost(title:String!,body:String!,published:Boolean!,author:ID!):Post!
+    createComment(text:String!,author:ID!,post:ID!):Comment!
 }
 
 type User {
@@ -152,6 +154,21 @@ const resolvers = {
     },
   },
   Mutation: {
+    createComment(parent, args, ctx, info) {
+      const userIsValid = users.some((user) => user.id === args.author);
+      if (!userIsValid) {
+        throw new Error('Invalid user!');
+      }
+      const comment = {
+        id: uuidv4(),
+        text: args.text,
+        author: args.author,
+        post: args.post,
+      };
+
+      comments.push(comment);
+      return comment;
+    },
     createUser(parent, args, ctx, info) {
       const emailTaken = users.some((user) => user.email === args.email);
       if (emailTaken) {
@@ -165,6 +182,20 @@ const resolvers = {
       };
       users.push(user);
       return user;
+    },
+    createPost(parent, args, ctx, info) {
+      const userIsValid = users.some((user) => user.id === args.author);
+      if (!userIsValid) {
+        throw new Error('User is not valid!');
+      }
+      const post = {
+        id: uuidv4(),
+        title: args.title,
+        body: args.body,
+        author: args.author,
+      };
+      posts.push(post);
+      return post;
     },
   },
   // custom type resolver for Post
