@@ -31,18 +31,21 @@ let posts = [
     title: 'GraphQL 101',
     body: 'this is about graphQL 101',
     author: '1',
+    published: true,
   },
   {
     id: '2',
     title: 'GraphQL 201',
     body: 'this is about graphQL 201',
     author: '1',
+    published: false,
   },
   {
     id: '3',
     title: 'Programming Music',
     body: 'this is about programming music',
     author: '2',
+    published: true,
   },
 ];
 let users = [

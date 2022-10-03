@@ -50,7 +50,12 @@ const Mutation = {
 
     return user;
   },
-  createComment(parent, args, { db: { users, posts, comments } }, info) {
+  createComment(
+    parent,
+    args,
+    { db: { users, posts, comments }, pubsub },
+    info
+  ) {
     const userIsValid = users.some((user) => user.id === args.comment.author);
     const postExist = posts.some((post) => post.id === args.comment.post);
     if (!userIsValid || !postExist) {
@@ -62,6 +67,8 @@ const Mutation = {
     };
 
     comments.push(comment);
+
+    pubsub.publish(`comment ${args.comment.post}`, { comment });
     return comment;
   },
   updateComment(parent, args, { db: { comments } }, info) {
