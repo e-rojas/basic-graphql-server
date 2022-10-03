@@ -26,6 +26,30 @@ const Mutation = {
     });
     return deletedUsers;
   },
+  updateUser(parent, args, { db: { users } }, info) {
+    const { id, data } = args;
+    const user = users.find((user) => user.id === id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    if (typeof data.email === 'string') {
+      const emailIsTaken = users.some((user) => user.email === data.email);
+      if (emailIsTaken) {
+        throw new Error('Email is taken');
+      }
+      user.email = data.email;
+    }
+
+    if (typeof data.name === 'string') {
+      user.name = data.name;
+    }
+
+    if (typeof data.age !== 'undefined') {
+      user.age = data.age;
+    }
+
+    return user;
+  },
   createComment(parent, args, { db: { users, posts, comments } }, info) {
     const userIsValid = users.some((user) => user.id === args.comment.author);
     const postExist = posts.some((post) => post.id === args.comment.post);
