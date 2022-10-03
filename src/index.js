@@ -12,6 +12,7 @@ const typeDefs = `type Query {
 
 type Mutation {
     createUser(data: CreateUserInput):User!
+    deleteUser(id:ID!):User!
     createPost(post: createPostInput):Post!
     createComment(comment: createCommentInput):Comment!
 }
@@ -62,7 +63,7 @@ type Comment {
 
 `;
 // comments
-const comments = [
+let comments = [
   {
     id: '102',
     text: 'This worked well for me. Thanks!',
@@ -89,7 +90,7 @@ const comments = [
   },
 ];
 // posts
-const posts = [
+let posts = [
   {
     id: '1',
     title: 'GraphQL 101',
@@ -109,7 +110,7 @@ const posts = [
     author: '2',
   },
 ];
-const users = [
+let users = [
   {
     id: '1',
     name: 'Albert',
@@ -173,6 +174,23 @@ const resolvers = {
     },
   },
   Mutation: {
+    deleteUser(parent, args, ctx, info) {
+      const userIndex = users.findIndex((user) => user.id === args.id);
+      if (userIndex === -1) {
+        throw new Error('User not found');
+      }
+
+      const deletedUsers = users.splice(userIndex, 1)[0];
+      posts = posts.filter((post) => {
+        const match = post.author === args.id;
+        if (match) {
+          comments = comments.filter((comment) => comment.post !== post.id);
+        }
+        comments = comments.filter((comment) => comment.author !== args.id);
+        return !match;
+      });
+      return deletedUsers;
+    },
     createComment(parent, args, ctx, info) {
       const userIsValid = users.some((user) => user.id === args.comment.author);
       const postExist = posts.some((post) => post.id === args.comment.post);
