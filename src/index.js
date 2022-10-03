@@ -1,142 +1,12 @@
 import { GraphQLServer } from 'graphql-yoga';
 import uuidv4 from 'uuid/v4';
-// Type definitions (schema) application schema
-// array of scalar types
-const typeDefs = `type Query {
-    users(query:String): [User!]!
-    posts(query:String): [Post!]!
-    comments: [Comment!]!
-    me: User!
-    post: Post!
-}
-
-type Mutation {
-    createUser(data: CreateUserInput):User!
-    deleteUser(id:ID!):User!
-    deletePost(id:ID!):Post!
-    createPost(post: createPostInput):Post!
-    createComment(comment: createCommentInput):Comment!
-}
-
-input CreateUserInput {
-  name: String!,
-  email: String!,
-  age: Int
-}
-
-input createPostInput {
-  title: String!,
-  body: String!,
-  published: Boolean!,
-  author: ID!
-}
-
-input createCommentInput {
-  text: String!,
-  author: ID!,
-  post: ID!
-}
-
-type User {
-    id: ID!
-    name: String!
-    email: String!
-    age: Int
-    posts: [Post!]!
-    comments: [Comment!]!
-}
-
-type Post {
-    id: ID!
-    title: String!
-    body: String!
-    published: Boolean!
-    author: User!
-    comments: [Comment!]!
-}
-
-type Comment {
-    id: ID!
-    text: String!
-    author: User!
-    post: Post!
-}
-
-`;
-// comments
-let comments = [
-  {
-    id: '102',
-    text: 'This worked well for me. Thanks!',
-    author: '3',
-    post: '1',
-  },
-  {
-    id: '103',
-    text: 'Glad you enjoyed it.',
-    author: '1',
-    post: '2',
-  },
-  {
-    id: '104',
-    text: 'This did no work.',
-    author: '2',
-    post: '3',
-  },
-  {
-    id: '105',
-    text: 'Nevermind. I got it to work.',
-    author: '1',
-    post: '2',
-  },
-];
-// posts
-let posts = [
-  {
-    id: '1',
-    title: 'GraphQL 101',
-    body: 'this is about graphQL 101',
-    author: '1',
-  },
-  {
-    id: '2',
-    title: 'GraphQL 201',
-    body: 'this is about graphQL 201',
-    author: '1',
-  },
-  {
-    id: '3',
-    title: 'Programming Music',
-    body: 'this is about programming music',
-    author: '2',
-  },
-];
-let users = [
-  {
-    id: '1',
-    name: 'Albert',
-    email: 'albert@mail.com',
-    age: 27,
-  },
-  {
-    id: '2',
-    name: 'Sarah',
-    email: 'sarah@mail.com',
-    age: 25,
-  },
-  {
-    id: '3',
-    name: 'Mike',
-    email: 'mike@gmail.com',
-    age: null,
-  },
-];
+import db from './db';
 const resolvers = {
   Query: {
-    comments: (parent, args, ctx, info) => {
+    comments: (parent, args, { db: { comments } }, info) => {
       return comments;
     },
-    posts: (parent, args, ctx, info) => {
+    posts: (parent, args, { db: { posts } }, info) => {
       if (!args.query) {
         return posts;
       }
@@ -149,7 +19,7 @@ const resolvers = {
       });
     },
 
-    users(parent, args, ctx, info) {
+    users(parent, args, { db: { users } }, info) {
       if (!args.query) {
         return users;
       }
@@ -175,7 +45,7 @@ const resolvers = {
     },
   },
   Mutation: {
-    deletePost(parent, args, ctx, info) {
+    deletePost(parent, args, { db: { posts, comments } }, info) {
       const postIndex = posts.findIndex((post) => post.id === args.id);
       if (postIndex === -1) {
         throw new Error('Post not found');
@@ -184,7 +54,7 @@ const resolvers = {
       comments = comments.filter((comment) => comment.post !== args.id);
       return deletedPost;
     },
-    deleteUser(parent, args, ctx, info) {
+    deleteUser(parent, args, { db: { users, posts, comments } }, info) {
       const userIndex = users.findIndex((user) => user.id === args.id);
       if (userIndex === -1) {
         throw new Error('User not found');
@@ -201,7 +71,7 @@ const resolvers = {
       });
       return deletedUsers;
     },
-    createComment(parent, args, ctx, info) {
+    createComment(parent, args, { db: { users, posts, comments } }, info) {
       const userIsValid = users.some((user) => user.id === args.comment.author);
       const postExist = posts.some((post) => post.id === args.comment.post);
       if (!userIsValid || !postExist) {
@@ -215,7 +85,7 @@ const resolvers = {
       comments.push(comment);
       return comment;
     },
-    createUser(parent, args, ctx, info) {
+    createUser(parent, args, { db: { users } }, info) {
       const emailTaken = users.some((user) => user.email === args.data.email);
       if (emailTaken) {
         throw new Error('Email taken.');
@@ -227,7 +97,7 @@ const resolvers = {
       users.push(user);
       return user;
     },
-    createPost(parent, args, ctx, info) {
+    createPost(parent, args, { db: { users, posts } }, info) {
       const userIsValid = users.some((user) => user.id === args.post.author);
       if (!userIsValid) {
         throw new Error('User is not valid!');
@@ -242,36 +112,36 @@ const resolvers = {
   },
   // custom type resolver for Post
   Post: {
-    author(parent, args, ctx, info) {
+    author(parent, args, { db: { users } }, info) {
       return users.find((user) => {
         return user.id === parent.author;
       });
     },
-    comments(parent, args, ctx, info) {
+    comments(parent, args, { db: { comments } }, info) {
       comments.filter((comment) => {
         comment.post === parent.id;
       });
     },
   },
   Comment: {
-    author(parent, args, ctx, info) {
+    author(parent, args, { db: { users } }, info) {
       return users.find((user) => {
         return user.id === parent.author;
       });
     },
-    post: (parent, args, ctx, info) => {
+    post: (parent, args, { db: { posts } }, info) => {
       return posts.find((post) => {
         return post.id === parent.post;
       });
     },
   },
   User: {
-    posts(parent, args, ctx, info) {
+    posts(parent, args, { db: { posts } }, info) {
       return posts.filter((post) => {
         return post.author === parent.id;
       });
     },
-    comments(parent, args, ctx, info) {
+    comments(parent, args, { db: { comments } }, info) {
       return comments.filter((comment) => {
         return comment.author === parent.id;
       });
@@ -279,10 +149,13 @@ const resolvers = {
   },
 };
 
-// Create the GraphQL Yoga Server
+// Create the GraphQL Yoga Server its
 const server = new GraphQLServer({
-  typeDefs,
+  typeDefs: './src/schema.graphql',
   resolvers,
+  context: {
+    db,
+  },
 });
 
 // Start the server
