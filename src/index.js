@@ -12,14 +12,27 @@ const typeDefs = `type Query {
 
 type Mutation {
     createUser(data: CreateUserInput):User!
-    createPost(title:String!,body:String!,published:Boolean!,author:ID!):Post!
-    createComment(text:String!,author:ID!,post:ID!):Comment!
+    createPost(post: createPostInput):Post!
+    createComment(comment: createCommentInput):Comment!
 }
 
 input CreateUserInput {
   name: String!,
   email: String!,
   age: Int
+}
+
+input createPostInput {
+  title: String!,
+  body: String!,
+  published: Boolean!,
+  author: ID!
+}
+
+input createCommentInput {
+  text: String!,
+  author: ID!,
+  post: ID!
 }
 
 type User {
@@ -161,14 +174,14 @@ const resolvers = {
   },
   Mutation: {
     createComment(parent, args, ctx, info) {
-      const userIsValid = users.some((user) => user.id === args.author);
-      const postExist = posts.some((post) => post.id === args.post);
+      const userIsValid = users.some((user) => user.id === args.comment.author);
+      const postExist = posts.some((post) => post.id === args.comment.post);
       if (!userIsValid || !postExist) {
         throw new Error('Invalid user or Post id!');
       }
       const comment = {
         id: uuidv4(),
-        ...args,
+        ...args.comment,
       };
 
       comments.push(comment);
@@ -187,13 +200,13 @@ const resolvers = {
       return user;
     },
     createPost(parent, args, ctx, info) {
-      const userIsValid = users.some((user) => user.id === args.author);
+      const userIsValid = users.some((user) => user.id === args.post.author);
       if (!userIsValid) {
         throw new Error('User is not valid!');
       }
       const post = {
         id: uuidv4(),
-        ...args,
+        ...args.post,
       };
       posts.push(post);
       return post;
