@@ -64,6 +64,18 @@ const Mutation = {
     comments.push(comment);
     return comment;
   },
+  updateComment(parent, args, { db: { comments } }, info) {
+    const { id, data } = args;
+    const comment = comments.find((comment) => comment.id === id);
+    if (!comment) {
+      throw new Error('Comment not found');
+    }
+    if (typeof data.text === 'string') {
+      comment.text = data.text;
+    }
+
+    return comment;
+  },
   createUser(parent, args, { db: { users } }, info) {
     const emailTaken = users.some((user) => user.email === args.data.email);
     if (emailTaken) {
