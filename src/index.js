@@ -13,6 +13,7 @@ const typeDefs = `type Query {
 type Mutation {
     createUser(data: CreateUserInput):User!
     deleteUser(id:ID!):User!
+    deletePost(id:ID!):Post!
     createPost(post: createPostInput):Post!
     createComment(comment: createCommentInput):Comment!
 }
@@ -174,6 +175,15 @@ const resolvers = {
     },
   },
   Mutation: {
+    deletePost(parent, args, ctx, info) {
+      const postIndex = posts.findIndex((post) => post.id === args.id);
+      if (postIndex === -1) {
+        throw new Error('Post not found');
+      }
+      const deletedPost = posts.splice(postIndex, 1)[0];
+      comments = comments.filter((comment) => comment.post !== args.id);
+      return deletedPost;
+    },
     deleteUser(parent, args, ctx, info) {
       const userIndex = users.findIndex((user) => user.id === args.id);
       if (userIndex === -1) {
