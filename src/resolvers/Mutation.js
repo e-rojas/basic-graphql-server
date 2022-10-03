@@ -1,10 +1,5 @@
 import uuidv4 from 'uuid/v4';
 
-// Enum for the status of a todo
-const TodoStatus = {
-  ACTIVE: 'ACTIVE',
-  COMPLETED: 'COMPLETED',
-};
 const Mutation = {
   deletePost(parent, args, { db: { posts, comments } }, info) {
     const postIndex = posts.findIndex((post) => post.id === args.id);
