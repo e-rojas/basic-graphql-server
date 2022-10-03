@@ -95,7 +95,7 @@ const Mutation = {
     users.push(user);
     return user;
   },
-  createPost(parent, args, { db: { users, posts } }, info) {
+  createPost(parent, args, { db: { users, posts }, pubsub }, info) {
     const userIsValid = users.some((user) => user.id === args.post.author);
     if (!userIsValid) {
       throw new Error('User is not valid!');
@@ -105,6 +105,9 @@ const Mutation = {
       ...args.post,
     };
     posts.push(post);
+    if (post.published) {
+      pubsub.publish('post', { post });
+    }
     return post;
   },
   updatePost(parent, args, { db: { posts } }, info) {
