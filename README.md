@@ -13,3 +13,12 @@ To setup the prisma server, run `npm install -g prisma` to install the prisma cl
 `docker-compose --env-file .env  up -d`
 
 `sudo prisma1 deploy`
+
+## Notes
+
+1- Directives are used to modify the behavior of a field or fragment without affecting the underlying data. They are used to add additional functionality to the schema.
+`@unique` is used to make a field unique.
+`@relation` is used to create a relationship between two models.
+`@default` is used to set a default value for a field.
+`@createdAt` is used to set the date and time when a record was created.
+`@updatedAt` is used to set the date and time when a record was updated.
